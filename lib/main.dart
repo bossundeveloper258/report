@@ -4,7 +4,7 @@ import 'package:presentacion/ui/pages/bienvenida.dart';
 import 'package:presentacion/ui/pages/frmReporte.dart';
 import 'package:presentacion/ui/pages/history.dart';
 import 'package:presentacion/ui/pages/login.dart';
-
+import 'package:presentacion/core/services/authentication.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       create: (context) => ReportProvider(),
       child: MaterialApp(
           title: 'Reportando',
-          initialRoute: '/login',
+          initialRoute: !isCurrentUser() ? '/login' : '/welcome',
           routes: {
             '/login' : (context) => LoginScreen(),
             '/welcome' : (context) => WelcomeScreen(),

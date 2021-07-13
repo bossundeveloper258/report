@@ -51,6 +51,7 @@ class ReportProvider with ChangeNotifier{
   }
 
   void changeName(String val){
+    print("ddddd");
     if (val.length >= 1){
       name = ValidationItem(val,null);
     } else {

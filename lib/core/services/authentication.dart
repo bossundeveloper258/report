@@ -33,5 +33,11 @@ Future<void> signOut() async {
   await FirebaseAuth.instance.signOut();
 }
 
+bool isCurrentUser(){
+  var user = FirebaseAuth.instance.currentUser;
+  if( user != null ) return true;
+  return false;
+}
+
 
 

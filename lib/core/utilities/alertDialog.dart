@@ -3,7 +3,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AlertDialogApp{
-  void buildAlertDialog(BuildContext context) {
+
+  String message = "";
+
+  void buildAlertDialog(BuildContext context , String _message) {
+    this.message = _message;
     if (Platform.isAndroid) {
       _materialAlertDialog(context);
     } else if (Platform.isIOS) {
@@ -54,7 +58,7 @@ class AlertDialogApp{
   }
 
   Widget _contentText() {
-    return Text("Usuario y contraseña incorrectos");
+    return Text(this.message);
   }
 
 

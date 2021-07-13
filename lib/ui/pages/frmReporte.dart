@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:presentacion/core/utilities/alertDialog.dart';
 import 'package:presentacion/core/utilities/constanst.dart';
 import 'package:presentacion/core/providers/provider.dart';
 import 'package:presentacion/core/model/reporte.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:presentacion/core/model/validation_item.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 
 class FrmReportScreen extends StatefulWidget {
   late final Report report;
@@ -25,14 +31,23 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
   TextEditingController _aggressorController = new TextEditingController();
 
   TextEditingController _dateController = new TextEditingController();
+  final AlertDialogApp alertDialogApp = new AlertDialogApp();
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String? _fileName;
+  List<PlatformFile>? _paths;
+  String? _directoryPath;
+  bool _loadingPath = false;
+  FileType _pickingType = FileType.custom;
 
 
   bool _addInvolved = false;
+  bool _addEvidences = false;
 
   @override
   void initState() {
     // TODO: implement initState
-    final entryProvider = Provider.of<ReportProvider>(context,listen: false);
+
 
     _nameController = new TextEditingController(text: '');
     _phoneController = new TextEditingController(text: '');
@@ -59,6 +74,32 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
   Widget build(BuildContext context) {
 
     final entryProvider = Provider.of<ReportProvider>(context);
+
+
+
+    void _openFileExplorer() async {
+      setState(() => _loadingPath = true);
+      try {
+        _directoryPath = null;
+        _paths = (await FilePicker.platform.pickFiles(
+          type: _pickingType,
+          allowMultiple: true,
+          allowedExtensions: ['jpg', 'png'],
+        ))
+            ?.files;
+      } on PlatformException catch (e) {
+        print("Unsupported operation" + e.toString());
+      } catch (ex) {
+        print(ex);
+      }
+      if (!mounted) return;
+      setState(() {
+        _loadingPath = false;
+        print(_paths!.first.extension);
+        _fileName =
+        _paths != null ? _paths!.map((e) => e.name).toString() : '...';
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -114,7 +155,7 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
                   style: TextStyle(fontSize: 17.0, color: Colors.black),
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Lugar de Nacimiento',
+                      labelText: 'Lugar de Incidente',
                       errorText: entryProvider.placeIncident.error
                   ),
 
@@ -215,12 +256,12 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
                       Theme(
                         data: ThemeData(unselectedWidgetColor: Colors.white),
                         child: Checkbox(
-                          value: _addInvolved,
+                          value: _addEvidences,
                           checkColor: Colors.green,
                           activeColor: Colors.white,
                           onChanged: (value) {
                             setState(() {
-                              _addInvolved = value!;
+                              _addEvidences = value!;
                             });
                           },
                         ),
@@ -232,6 +273,86 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
                   ),
                 ),
 
+                Padding(
+                  padding: const EdgeInsets.only(top: 50.0, bottom: 20.0),
+                  child: Column(
+                    children: <Widget>[
+                      Text( "Evidencias: Fotos o video" ),
+                      ElevatedButton.icon(
+                        onPressed: () => _openFileExplorer(),
+                        icon: Icon(
+                          Icons.upload_file_rounded,
+                          color: Colors.white,
+                          size: 24.0,
+                        ), label: Text('')
+                      ),
+
+                    ],
+                  ),
+                ),
+                Builder(
+                  builder: (BuildContext context) => _loadingPath
+                      ? Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: const CircularProgressIndicator(),
+                  )
+                      : _directoryPath != null
+                      ? ListTile(
+                    title: const Text('Directory path'),
+                    subtitle: Text(_directoryPath!),
+                  )
+                      : _paths != null
+                      ? Container(
+                    padding: const EdgeInsets.only(bottom: 30.0),
+                    height: MediaQuery.of(context).size.height * 0.50,
+                    child: Scrollbar(
+                        child: ListView.separated(
+                          itemCount:
+                          _paths != null && _paths!.isNotEmpty
+                              ? _paths!.length
+                              : 1,
+                          itemBuilder:
+                              (BuildContext context, int index) {
+                            final bool isMultiPath =
+                                _paths != null && _paths!.isNotEmpty;
+                            final String name = 'File $index: ' +
+                                (isMultiPath
+                                    ? _paths!
+                                    .map((e) => e.name)
+                                    .toList()[index]
+                                    : _fileName ?? '...');
+                            final path = _paths!
+                                .map((e) => e.path)
+                                .toList()[index]
+                                .toString();
+
+                            return Card(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Expanded(
+                                      child:Container(
+                                        child: Image.file(new File(path)),
+                                    ),flex: 1,
+
+                                  ),
+                                  Expanded( child:Padding(
+                                    padding: EdgeInsets.all(7.0),
+                                    child: Text(  name ),
+                                  ),flex: 2,)
+                                ],
+                              ),
+                            );
+                          },
+                          separatorBuilder:
+                              (BuildContext context, int index) =>
+                          const Divider(),
+                        )),
+                  )
+                      : const SizedBox(),
+                ),
+
+
                 SizedBox(height: 30.0),
                 RaisedButton(
                   elevation: 5.0,
@@ -239,8 +360,11 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
                     print(entryProvider.name.error);
                     print(entryProvider.isValid);
                     if( entryProvider.isValid ){
+                      alertDialogApp.buildAlertDialog(context, "Se Grabo correctamente");
                       entryProvider.saveReport();
                       Navigator.pushNamed(context, '/welcome');
+                    }else{
+                      alertDialogApp.buildAlertDialog(context, "Falta rellenar algunos datos");
                     }
 
                   },

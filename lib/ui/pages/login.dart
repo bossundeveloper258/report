@@ -17,6 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController _pass = new TextEditingController();
   final AlertDialogApp alertDialogApp = new AlertDialogApp();
 
+  bool isSign = false;
+
   Widget _buildEmailTF(TextEditingController txt) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,6 +158,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void initState(){
+    setState(() {
+      isSign = false;
+    });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
 
     return Scaffold(
@@ -255,15 +265,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: RaisedButton(
                           elevation: 5.0,
                           onPressed: () async  {
-                            print(_user.text);
-                            print(_pass.text);
+                            if(isSign) return;
+                            setState(() {
+                              isSign = true;
+                            });
                             bool shouldNavigate = await signIn(_user.text, _pass.text);
-                            print(shouldNavigate);
-                            if(shouldNavigate){
-                              Navigator.pushNamed(context, '/welcome');
-                            }else{
-                              alertDialogApp.buildAlertDialog(context);
-                            }
+
+                            setState(() async {
+                              isSign = false;
+                              if(shouldNavigate){
+
+                                Navigator.pushNamed(context, '/welcome');
+                              }else{
+
+                                alertDialogApp.buildAlertDialog(context, "Usuario y contraseña incorrectos");
+                              }
+
+                            });
+
 
                           },
                           padding: EdgeInsets.all(15.0),
@@ -271,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(30.0),
                           ),
                           color: primaryColor,
-                          child: Text(
+                          child: !isSign? Text(
                             'INGRESAR',
                             style: TextStyle(
                               color: Colors.white,
@@ -280,6 +299,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.bold,
                               fontFamily: 'OpenSans',
                             ),
+                          ) : CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         ),
                       ),
