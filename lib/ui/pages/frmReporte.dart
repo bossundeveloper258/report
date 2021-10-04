@@ -87,6 +87,7 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
           allowedExtensions: ['jpg', 'png'],
         ))
             ?.files;
+        entryProvider.changePaths(_paths);
       } on PlatformException catch (e) {
         print("Unsupported operation" + e.toString());
       } catch (ex) {
@@ -180,22 +181,19 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
                   height: 20.0,
                   child: Row(
                     children: <Widget>[
-                    Theme(
-                    data: ThemeData(unselectedWidgetColor: Colors.white),
-                      child: Checkbox(
+                      Checkbox(
                         value: _addInvolved,
-                        checkColor: Colors.green,
-                        activeColor: Colors.white,
+                        //checkColor: Colors.green,
+                        // activeColor: Colors.white,
                         onChanged: (value) {
                           setState(() {
                             _addInvolved = value!;
                           });
                         },
                       ),
-                    ),
-                    Text(
-                      'Agregar Implicados',
-                    ),
+                      Text(
+                        'Agregar Implicados',
+                      ),
                     ],
                   ),
                 ),
@@ -248,23 +246,21 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
 
                 ),
 
-                SizedBox(height: 10.0),
+                SizedBox(height: 40.0),
                 Container(
                   height: 20.0,
                   child: Row(
                     children: <Widget>[
-                      Theme(
-                        data: ThemeData(unselectedWidgetColor: Colors.white),
-                        child: Checkbox(
-                          value: _addEvidences,
-                          checkColor: Colors.green,
-                          activeColor: Colors.white,
-                          onChanged: (value) {
-                            setState(() {
-                              _addEvidences = value!;
-                            });
-                          },
-                        ),
+                      Checkbox(
+                        value: _addEvidences,
+                        // checkColor: Colors.green,
+                        // activeColor: Colors.white,
+                        onChanged: (value) {
+                          setState(() {
+                            _addEvidences = value!;
+                          });
+                        },
+
                       ),
                       Text(
                         'Agregar Evidencias',
@@ -275,17 +271,23 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
 
                 Padding(
                   padding: const EdgeInsets.only(top: 50.0, bottom: 20.0),
-                  child: Column(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text( "Evidencias: Fotos o video" ),
-                      ElevatedButton.icon(
-                        onPressed: () => _openFileExplorer(),
-                        icon: Icon(
-                          Icons.upload_file_rounded,
-                          color: Colors.white,
-                          size: 24.0,
-                        ), label: Text('')
-                      ),
+                      Expanded(child: Padding(padding: EdgeInsets.only(left: 20),child: Text( "Evidencias: Fotos o video", style: TextStyle(fontSize: 16), ),),flex: 2,),
+                      Expanded( child: Padding( padding: EdgeInsets.only(left: 20,right: 20), child: ElevatedButton.icon(
+                          onPressed: () => _addEvidences? _openFileExplorer() : null ,
+                          icon: Icon(
+                            Icons.upload_file_rounded,
+                            color: Colors.white,
+                            size: 24.0,
+                          ),
+                          label: Text(''),
+                        style: ElevatedButton.styleFrom(
+                          primary: !_addEvidences? Colors.grey : null
+                        ),
+                      ),),flex: 1,)
+                      ,
 
                     ],
                   ),
@@ -298,13 +300,14 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
                   )
                       : _directoryPath != null
                       ? ListTile(
-                    title: const Text('Directory path'),
+                    title: const Text('Ruta Directorio'),
                     subtitle: Text(_directoryPath!),
                   )
                       : _paths != null
                       ? Container(
                     padding: const EdgeInsets.only(bottom: 30.0),
                     height: MediaQuery.of(context).size.height * 0.50,
+                    color: _addEvidences? Colors.grey : null,
                     child: Scrollbar(
                         child: ListView.separated(
                           itemCount:
@@ -315,7 +318,7 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
                               (BuildContext context, int index) {
                             final bool isMultiPath =
                                 _paths != null && _paths!.isNotEmpty;
-                            final String name = 'File $index: ' +
+                            final String name =
                                 (isMultiPath
                                     ? _paths!
                                     .map((e) => e.name)
@@ -356,12 +359,13 @@ class _FrmReportScreenState extends State<FrmReportScreen>{
                 SizedBox(height: 30.0),
                 RaisedButton(
                   elevation: 5.0,
-                  onPressed: ()  {
+                  onPressed: () async  {
                     print(entryProvider.name.error);
                     print(entryProvider.isValid);
                     if( entryProvider.isValid ){
+
+                      await entryProvider.saveReport();
                       alertDialogApp.buildAlertDialog(context, "Se Grabo correctamente");
-                      entryProvider.saveReport();
                       Navigator.pushNamed(context, '/welcome');
                     }else{
                       alertDialogApp.buildAlertDialog(context, "Falta rellenar algunos datos");

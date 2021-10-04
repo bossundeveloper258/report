@@ -1,10 +1,24 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:presentacion/core/utilities/shared_preferences_util.dart';
+
+SharedPreferencesUtil sharedPreference = new SharedPreferencesUtil();
 
 Future<bool> signIn(String email, String password) async {
   try {
-    await FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: email, password: password);
-    return true;
+
+    var isuser = await isDBUser(email);
+
+    if(isuser){
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+      return true;
+    }
+
+
+
+    return false;
+
   } catch (e) {
     print(e);
     return false;
@@ -39,5 +53,12 @@ bool isCurrentUser(){
   return false;
 }
 
+Future<bool> isDBUser( String email ) async{
+  FirebaseFirestore _db = FirebaseFirestore.instance;
+  var users = await _db.collection('Users').where('username' , isGreaterThanOrEqualTo: email ).get().then((snapshot) => snapshot.docs);
+  sharedPreference.setUserName(users.first.data()['name']);
+  print( users );
+  return !users.isEmpty;
+}
 
 

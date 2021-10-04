@@ -9,8 +9,8 @@ class FirestoreService{
   Stream<List<Report>> getReports(){
     print(FirebaseAuth.instance.currentUser!.uid);
     return _db
-        .collection('Users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
+        //.collection('Users')
+        //.doc(FirebaseAuth.instance.currentUser!.uid)
         .collection('Reports')
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -18,21 +18,21 @@ class FirestoreService{
         .toList());
   }
 
-  Future<void> saveReport(Report entry){
+  Future<void> saveReport(Report report){
     var options = SetOptions(merge:true);
 
     return _db
-        .collection('Users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
+        //.collection('Users')
+        //.doc(FirebaseAuth.instance.currentUser!.uid)
         .collection('Reports')
-        .doc(entry.id)
-        .set(entry.toMap(),options);
+        .doc(report.id)
+        .set(report.toMap(),options);
   }
 
   Future<void> removeReport(String reportId){
     return _db
-        .collection('Users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
+        //.collection('Users')
+        //.doc(FirebaseAuth.instance.currentUser!.uid)
         .collection('Reports')
         .doc(reportId)
         .delete();

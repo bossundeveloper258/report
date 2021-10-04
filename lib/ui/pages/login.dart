@@ -271,17 +271,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             });
                             bool shouldNavigate = await signIn(_user.text, _pass.text);
 
-                            setState(() async {
+                            setState(()  {
                               isSign = false;
-                              if(shouldNavigate){
-
-                                Navigator.pushNamed(context, '/welcome');
-                              }else{
-
-                                alertDialogApp.buildAlertDialog(context, "Usuario y contraseña incorrectos");
-                              }
-
                             });
+
+                            if(shouldNavigate){
+
+                              Navigator.pushNamed(context, '/welcome');
+                            }else{
+
+                              alertDialogApp.buildAlertDialog(context, "Usuario y contraseña incorrectos");
+                            }
 
 
                           },

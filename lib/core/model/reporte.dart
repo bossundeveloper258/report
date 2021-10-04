@@ -9,12 +9,14 @@ class Report{
   final String description;
   final String? aggressor;
   final String date;
+  final String userId;
+
 
   Report({ required this.name, required this.phone, required this.placeIncident,
-    required this.description,this.aggressor, required this.id , required this.date});
+    required this.description,this.aggressor, required this.id , required this.date, required this.userId});
 
   factory Report.fromJson( Map<String, dynamic> json ){
-    print(json['id'] + "Reportttt");
+
     return Report(
         id: json['id'],
         name: json['name'],
@@ -22,7 +24,8 @@ class Report{
         placeIncident: json['placeIncident'],
         description: json['description'],
         aggressor: json['aggressor'],
-        date: json['date']
+        date: json['date'],
+        userId: json['userId']
     );
   }
 
@@ -35,7 +38,11 @@ class Report{
       'placeIncident' : placeIncident,
       'description': description,
       'aggressor' : aggressor,
-      'date' : date
+      'date' : date,
+      // 'images' : images,
+      'userId': userId,
+      'status': 1,
+      'statusName' : "En espera"
     };
   }
 }

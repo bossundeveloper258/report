@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:presentacion/core/model/reporte.dart';
 import 'package:presentacion/ui/pages/frmReporte.dart';
 import 'package:presentacion/core/services/authentication.dart';
+import 'package:presentacion/core/utilities/shared_preferences_util.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -9,7 +9,21 @@ class WelcomeScreen extends StatefulWidget {
 }
 class _WelcomeScreenState extends State<WelcomeScreen> {
 
-  late final Report report;
+  SharedPreferencesUtil sharedPreferences = new SharedPreferencesUtil();
+  String? _name = "";
+
+  @override
+  void initState(){
+    super.initState();
+
+    sharedPreferences.getUserName().then((value) => {
+      setState(() {
+        _name = value;
+      })
+    });
+
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +40,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: double.infinity,
                   child: Center(
                     child: Text(
-                      'Bienvenido: Mario' ,
+                      'Bienvenido: ' + _name.toString(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                       fontFamily: 'OpenSans',

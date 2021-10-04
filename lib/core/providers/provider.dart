@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:presentacion/core/model/ReportImages.dart';
 import 'package:presentacion/core/model/reporte.dart';
 import 'package:presentacion/core/model/validation_item.dart';
 import 'package:presentacion/core/services/firestore_services.dart';
+import 'package:presentacion/core/services/firebase_storage_services.dart';
 import 'package:presentacion/core/utilities/constanst.dart';
 import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ReportProvider with ChangeNotifier{
   final firestoreService = FirestoreService();
@@ -16,6 +20,10 @@ class ReportProvider with ChangeNotifier{
   ValidationItem description = ValidationItem(null,null);
   ValidationItem aggressor = ValidationItem(null,null);
   ValidationItem date = ValidationItem(null,null);
+
+  List<PlatformFile>? paths;
+
+  List<ReportImages> images = [];
 
   var uuid = Uuid();
 
@@ -45,6 +53,7 @@ class ReportProvider with ChangeNotifier{
       changeDNI("");
       changePlaceIncident("");
       changeDescription("");
+      changeAggressor("");
       changeDate("");
       return false;
     }
@@ -112,8 +121,36 @@ class ReportProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  saveReport(){
-  print(date.value.toString());
+  void changePaths( List<PlatformFile>? _paths ){
+    this.paths = _paths;
+  }
+
+  void cleanForm(){
+    changeName("");
+    changePhone("");
+    changeDNI("");
+    changePlaceIncident("");
+    changeDescription("");
+    changeAggressor("");
+    changeDate("");
+  }
+
+  Future<void> saveReport() async {
+    var id_report = uuid.v1();
+
+    if( this.paths != null){
+      this.paths!.forEach((path) async {
+        var _uuid = Uuid();
+        final firebaseStorageServices = FirebaseStorageServices(fileName: path.name, filePath: path.path! );
+
+        String fileString = await firebaseStorageServices.uploadFile( id_report );
+        print(fileString);
+        print("----------------------------------------------");
+        ReportImages _reportImages = ReportImages( _uuid.v4() , path.name , fileString );
+        images.add(_reportImages);
+      });
+    }
+
     var create = Report(
         name: name.value.toString() ,
         phone: phone.value.toString(),
@@ -121,10 +158,14 @@ class ReportProvider with ChangeNotifier{
         description: description.value.toString(),
         aggressor: aggressor.value,
         date: date.value.toString(),
-        id: uuid.v1() );
+        id: id_report,
+        userId: FirebaseAuth.instance.currentUser!.uid);
+
     firestoreService.saveReport(create);
+    cleanForm();
     notifyListeners();
   }
+
 
 
 }
